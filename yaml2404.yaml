@@ -1,6 +1,3 @@
-# cloud-init.yaml
-# Exemplo de arquivo YAML para configuração de inicialização
-
 # Configuração de usuários
 users:
   - name: user-ins
