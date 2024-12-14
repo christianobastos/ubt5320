@@ -1,3 +1,4 @@
+#Ubuntu 24
 # Configuração de usuários
 users:
   - name: user-ins
