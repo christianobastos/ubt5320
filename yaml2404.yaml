@@ -1,3 +1,4 @@
+#cloud-config
 #Ubuntu 24
 # Configuração de usuários
 users:
@@ -5,7 +6,7 @@ users:
     gecos: "user-ins"
     groups: [sudo]
     shell: /bin/bash
-    passwd: "troca essa senha"  # Senha criptografada
+    passwd: "troca essa senha"  # Senha temporária a ser substituída
 
 # Configuração de criptografia de disco
 disk_setup:
@@ -28,25 +29,33 @@ bootcmd:
   - cryptsetup luksFormat /dev/sda1 --key-file /etc/secure-keyfile
   - cryptsetup open /dev/sda1 disco_criptografado --key-file /etc/secure-keyfile
 
-  # Atualizar pacotes do sistema
+# Atualizar pacotes do sistema
   - echo "Atualizando pacotes do sistema..."
-  - sudo apt-get update
-  - sudo apt-get upgrade -y
+  - apt-get update
+  - apt-get upgrade -y
 
-  # Instalar htop
+# Instalar htop
   - echo "Instalando htop..."
-  - sudo apt-get install -y htop
+  - apt-get install -y htop
 
-  # Instalar Puppet
+# Instalar Puppet
   - echo "Instalando Puppet..."
   - wget https://apt.puppetlabs.com/puppet8-release-noble.deb
-  - sudo dpkg -i puppet8-release-noble.deb
-  - sudo apt-get update
-  - sudo apt-get install -y puppet-agent
+  - dpkg -i puppet8-release-noble.deb
+  - apt-get update
+  - apt-get install -y puppet-agent
 
+# Script para gerar chave SSH e atualizar o YAML
+runcmd:
+  - |
+    ssh-keygen -t rsa -b 4096 -f /home/user-ins/.ssh/id_rsa -N "" -C "your_email@example.com"
+    PRIVATE_KEY_CONTENT=$(cat /home/user-ins/.ssh/id_rsa | sed 's/$/\\n/g' | tr -d '\n')
+    sed -i "s|troca essa senha|$PRIVATE_KEY_CONTENT|g" /etc/secure-keyfile
+    echo "Chave SSH gerada e arquivo atualizado."
 
 # Adicionar um arquivo com a chave
 write_files:
   - path: /etc/secure-keyfile
     permissions: '0600'
-    content: troca essa senha
+    content: |
+      troca essa senha  # Será substituído pelo conteúdo real da chave
