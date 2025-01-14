@@ -1,0 +1,51 @@
+# Configuração de usuários
+users:
+  - name: user-ins
+    gecos: "user-ins"
+    groups: [sudo]
+    shell: /bin/bash
+    passwd: "troca essa senha"  # Senha criptografada
+
+# Configuração de criptografia de disco
+disk_setup:
+  /dev/sda:
+    table_type: gpt
+    layout: true
+    overwrite: false
+
+# Configuração de criptografia LUKS
+luks:
+  /dev/sda1:
+    keyfile: /etc/secure-keyfile  # Caminho do keyfile
+    cipher: aes-xts-plain64
+    size: 512
+    volume_name: "disco_criptografado"
+
+# Configuração de inicialização
+bootcmd:
+  - echo "Habilitando a criptografia do disco..."
+  - cryptsetup luksFormat /dev/sda1 --key-file /etc/secure-keyfile
+  - cryptsetup open /dev/sda1 disco_criptografado --key-file /etc/secure-keyfile
+
+  # Atualizar pacotes do sistema
+  - echo "Atualizando pacotes do sistema..."
+  - sudo apt-get update
+  - sudo apt-get upgrade -y
+
+  # Instalar htop
+  - echo "Instalando htop..."
+  - sudo apt-get install -y htop
+
+  # Instalar Puppet
+  - echo "Instalando Puppet..."
+  - wget https://apt.puppetlabs.com/puppet8-release-noble.deb
+  - sudo dpkg -i puppet8-release-noble.deb
+  - sudo apt-get update
+  - sudo apt-get install -y puppet-agent
+
+
+# Adicionar um arquivo com a chave
+write_files:
+  - path: /etc/secure-keyfile
+    permissions: '0600'
+    content: troca essa senha
