@@ -43,6 +43,12 @@ autoinstall:
         volgroup: vg0
         size: -1
         name: root
+  disk_setup:
+    /dev/sda:
+      table_type: gpt
+      layout:
+        - 100%
+      overwrite: false
   user-data:
     users:
       - name: user-ins
@@ -51,11 +57,12 @@ autoinstall:
         shell: /bin/bash
         passwd: "$6$rounds=4096$abcdefghijk..."  # Substitua por uma senha criptografada
     bootcmd:
+      - apt-get update
+      - apt-get install -y cryptsetup
       - echo "Habilitando a criptografia do disco..."
       - cryptsetup luksFormat /dev/sda1 --key-file /etc/secure-keyfile
       - cryptsetup open /dev/sda1 disco_criptografado --key-file /etc/secure-keyfile
       - echo "Atualizando pacotes do sistema..."
-      - apt-get update
       - apt-get upgrade -y
       - echo "Instalando htop..."
       - apt-get install -y htop
