@@ -9,7 +9,8 @@ autoinstall:
     config:
       - id: disk0
         type: disk
-        match: {}
+        match:
+          name: nvme0n1 # especifica diretamente o disco NVMe
         ptable: gpt
         wipe: superblock-recursive
         preserve: false
