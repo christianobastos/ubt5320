@@ -8,45 +8,6 @@ autoinstall:
   locale: pt_BR
   keyboard:
     layout: br
-  storage:
-    config:
-      - id: disk0
-        type: disk
-        match:
-          name: nvme0n1
-        ptable: gpt
-        wipe: superblock-recursive
-        preserve: false
-        grub_device: true
-        serial: {}
-        number: 0
-        partitions:
-          - size: 512M
-            wipe: superblock-recursive
-            type: efi
-            flag: boot
-            number: 1
-          - size: -1
-            wipe: superblock-recursive
-            type: linux
-            flag: 'system'
-            number: 2
-      - id: luks0
-        type: luks
-        device: disk0-part2
-        key: "$6$rounds=4096$abcdefghijk..."
-        name: crypto
-      - id: vg0
-        type: lvm_volgroup
-        devices:
-          - luks0
-        name: vg0
-      - id: lv_root
-        type: lvm_partition
-        volgroup: vg0
-        size: -1
-        name: root
-        mount_point: "/"
   disk_setup:
     /dev/sda1:
       table_type: gpt
