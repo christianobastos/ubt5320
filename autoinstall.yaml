@@ -9,8 +9,7 @@ autoinstall:
     config:
       - id: disk0
         type: disk
-        match:
-          ssd: false
+        match: {}
         ptable: gpt
         wipe: superblock-recursive
         preserve: false
