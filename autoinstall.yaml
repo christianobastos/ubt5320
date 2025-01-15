@@ -1,61 +1,77 @@
 #cloud-config
-#Ubuntu 24
-# Configuração de usuários
-users:
-  - name: user-ins
-    gecos: "user-ins"
-    groups: [sudo]
-    shell: /bin/bash
-    passwd: "troca essa senha"  # Senha temporária a ser substituída
-
-# Configuração de criptografia de disco
-disk_setup:
-  /dev/sda:
-    table_type: gpt
-    layout: true
-    overwrite: false
-
-# Configuração de criptografia LUKS
-luks:
-  /dev/sda1:
-    keyfile: /etc/secure-keyfile  # Caminho do keyfile
-    cipher: aes-xts-plain64
-    size: 512
-    volume_name: "disco_criptografado"
-
-# Configuração de inicialização
-bootcmd:
-  - echo "Habilitando a criptografia do disco..."
-  - cryptsetup luksFormat /dev/sda1 --key-file /etc/secure-keyfile
-  - cryptsetup open /dev/sda1 disco_criptografado --key-file /etc/secure-keyfile
-
-# Atualizar pacotes do sistema
-  - echo "Atualizando pacotes do sistema..."
-  - apt-get update
-  - apt-get upgrade -y
-
-# Instalar htop
-  - echo "Instalando htop..."
-  - apt-get install -y htop
-
-# Instalar Puppet
-  - echo "Instalando Puppet..."
-  - wget https://apt.puppetlabs.com/puppet8-release-noble.deb
-  - dpkg -i puppet8-release-noble.deb
-  - apt-get update
-  - apt-get install -y puppet-agent
-
-# Script para gerar chave SSH e atualizar o YAML
-runcmd:
-  - |
-    ssh-keygen -t rsa -b 4096 -f /home/user-ins/.ssh/id_rsa -N "" -C "your_email@example.com"
-    PRIVATE_KEY_CONTENT=$(cat /home/user-ins/.ssh/id_rsa | sed 's/$/\\n/g' | tr -d '\n')
-    sed -i "s|troca essa senha|$PRIVATE_KEY_CONTENT|g" /etc/secure-keyfile
-    echo "Chave SSH gerada e arquivo atualizado."
-
-# Adicionar um arquivo com a chave
-write_files:
-  - path: /etc/secure-keyfile
-    permissions: '0600'
-    content: |
-      troca essa senha  # Será substituído pelo conteúdo real da chave
+autoinstall:
+  version: 1
+  identity:
+    hostname: ubuntu5320
+    username: user-ins
+    password: "$6$rounds=4096$abcdefghijk..."  # Substitua por uma senha criptografada
+  storage:
+    config:
+      - id: disk0
+        type: disk
+        match:
+          ssd: false
+        ptable: gpt
+        wipe: superblock-recursive
+        preserve: false
+        name: ''
+        grub_device: true
+        serial: SCYTHE_SSD
+        number: 0
+        partitions:
+          - size: 512M
+            wipe: superblock-recursive
+            type: efi
+            flag: boot
+            number: 1
+          - size: -1
+            wipe: superblock-recursive
+            type: linux
+            flag: ''
+            number: 2
+      - id: luks0
+        type: luks
+        device: disk0-part2
+        key: "troca essa senha"  # Substitua por uma chave segura
+        name: crypto
+      - id: vg0
+        type: lvm_volgroup
+        devices:
+          - luks0
+        name: vg0
+      - id: lv_root
+        type: lvm_partition
+        volgroup: vg0
+        size: -1
+        name: root
+  user-data:
+    users:
+      - name: user-ins
+        gecos: "user-ins"
+        groups: [sudo]
+        shell: /bin/bash
+        passwd: "$6$rounds=4096$abcdefghijk..."  # Substitua por uma senha criptografada
+    bootcmd:
+      - echo "Habilitando a criptografia do disco..."
+      - cryptsetup luksFormat /dev/sda1 --key-file /etc/secure-keyfile
+      - cryptsetup open /dev/sda1 disco_criptografado --key-file /etc/secure-keyfile
+      - echo "Atualizando pacotes do sistema..."
+      - apt-get update
+      - apt-get upgrade -y
+      - echo "Instalando htop..."
+      - apt-get install -y htop
+      - echo "Instalando Puppet..."
+      - wget https://apt.puppetlabs.com/puppet8-release-noble.deb
+      - dpkg -i puppet8-release-noble.deb
+      - apt-get update
+      - apt-get install -y puppet-agent
+    runcmd:
+      - ssh-keygen -t rsa -b 4096 -f /home/user-ins/.ssh/id_rsa -N "" -C "your_email@example.com"
+      - PRIVATE_KEY_CONTENT=$(cat /home/user-ins/.ssh/id_rsa | sed 's/$/\\n/g' | tr -d '\n')
+      - sed -i "s|troca essa senha|$PRIVATE_KEY_CONTENT|g" /etc/secure-keyfile
+      - echo "Chave SSH gerada e arquivo atualizado."
+    write_files:
+      - path: /etc/secure-keyfile
+        permissions: '0600'
+        content: |
+          troca essa senha  # Substitua pelo conteúdo real da chave
