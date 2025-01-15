@@ -4,19 +4,22 @@ autoinstall:
   identity:
     hostname: ubuntu5320
     username: user-ins
-    password: "$6$rounds=4096$abcdefghijk..."  # Substitua por uma senha criptografada
+    password: "$6$rounds=4096$abcdefghijk..."
+  locale: pt_BR
+  keyboard:
+    layout: br
   storage:
     config:
       - id: disk0
         type: disk
         match:
-          name: nvme0n1 # especifica diretamente o disco NVMe
+          name: nvme0n1
         ptable: gpt
         wipe: superblock-recursive
         preserve: false
         name: ''
         grub_device: true
-        serial: SCYTHE_SSD
+        serial: {}
         number: 0
         partitions:
           - size: 512M
@@ -32,7 +35,7 @@ autoinstall:
       - id: luks0
         type: luks
         device: disk0-part2
-        key: "troca essa senha"  # Substitua por uma chave segura
+        key: "$6$rounds=4096$abcdefghijk..."
         name: crypto
       - id: vg0
         type: lvm_volgroup
@@ -44,6 +47,7 @@ autoinstall:
         volgroup: vg0
         size: -1
         name: root
+        mount_point: "/"
   disk_setup:
     /dev/sda:
       table_type: gpt
@@ -56,7 +60,7 @@ autoinstall:
         gecos: "user-ins"
         groups: [sudo]
         shell: /bin/bash
-        passwd: "$6$rounds=4096$abcdefghijk..."  # Substitua por uma senha criptografada
+        passwd: "$6$rounds=4096$abcdefghijk..."
     bootcmd:
       - apt-get update
       - apt-get install -y cryptsetup
@@ -73,12 +77,11 @@ autoinstall:
       - apt-get update
       - apt-get install -y puppet-agent
     runcmd:
-      - ssh-keygen -t rsa -b 4096 -f /home/user-ins/.ssh/id_rsa -N "" -C "your_email@example.com"
+      - ssh-keygen -t rsa -b 4096 -f /home/user-ins/.ssh/id_rsa -N "" 
       - PRIVATE_KEY_CONTENT=$(cat /home/user-ins/.ssh/id_rsa | sed 's/$/\\n/g' | tr -d '\n')
       - sed -i "s|troca essa senha|$PRIVATE_KEY_CONTENT|g" /etc/secure-keyfile
       - echo "Chave SSH gerada e arquivo atualizado."
     write_files:
       - path: /etc/secure-keyfile
         permissions: '0600'
-        content: |
-          troca essa senha  # Substitua pelo conteúdo real da chave
+        content: troca essa senha
