@@ -75,11 +75,6 @@ autoinstall:
       - dpkg -i puppet8-release-noble.deb
       - apt-get update
       - apt-get install -y puppet-agent
-    runcmd:
-      - ssh-keygen -t rsa -b 4096 -f /home/user-ins/.ssh/id_rsa -N "" 
-      - PRIVATE_KEY_CONTENT=$(cat /home/user-ins/.ssh/id_rsa | sed 's/$/\\n/g' | tr -d '\n')
-      - sed -i "s|troca essa senha|$PRIVATE_KEY_CONTENT|g" /etc/secure-keyfile
-      - echo "Chave SSH gerada e arquivo atualizado."
     write_files:
       - path: /etc/secure-keyfile
         permissions: '0600'
