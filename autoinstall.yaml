@@ -17,7 +17,6 @@ autoinstall:
         ptable: gpt
         wipe: superblock-recursive
         preserve: false
-        name: ''
         grub_device: true
         serial: {}
         number: 0
@@ -30,7 +29,7 @@ autoinstall:
           - size: -1
             wipe: superblock-recursive
             type: linux
-            flag: ''
+            flag: 'system'
             number: 2
       - id: luks0
         type: luks
@@ -49,7 +48,7 @@ autoinstall:
         name: root
         mount_point: "/"
   disk_setup:
-    /dev/sda:
+    /dev/sda1:
       table_type: gpt
       layout:
         - 100%
